@@ -29,7 +29,8 @@ console.log(`📋 ORDER_FORM_URL: ${ORDER_FORM_URL}`);
 pricing.loadPriceTable();
 
 // ─── Fallback responses ────────────────────────────────────────────────────────
-const ORDER_KEYWORDS = ['đặt hàng', 'muốn mua', 'muốn đặt', 'chốt đơn', 'form', 'link đặt', 'mua như nào', 'làm sao để mua', 'order'];
+// Chỉ các tín hiệu đặt hàng RÕ RÀNG — không dùng "muốn mua" vì quá rộng
+const ORDER_KEYWORDS = ['đặt hàng', 'muốn đặt', 'chốt đơn', 'gửi form', 'điền form', 'link đặt', 'đặt như thế nào', 'đặt ở đâu', 'mua như nào', 'làm sao để mua', 'tôi chốt'];
 
 function getFallbackResponse(message) {
   const msg = message.toLowerCase();
