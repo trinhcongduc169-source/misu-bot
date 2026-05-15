@@ -28,6 +28,26 @@ console.log(`📋 ORDER_FORM_URL: ${ORDER_FORM_URL}`);
 // ─── Load bảng giá ────────────────────────────────────────────────────────────
 pricing.loadPriceTable();
 
+// ─── Strip opener phrases GPT-4o-mini hay dùng dù đã cấm trong prompt ───────
+const OPENER_PATTERNS = [
+  /^Em rất vui khi [^.!?]*[.!?]\s*/u,
+  /^Cảm ơn anh\s*\/?\s*chị đã [^.!?]*[.!?]\s*/u,
+  /^Tuyệt vời[!,][^\n]*\n*/u,
+  /^Đây là lựa chọn tuyệt vời[^.!?]*[.!?]\s*/u,
+  /^Ý tưởng tuyệt vời[^.!?]*[.!?]\s*/u,
+  /^Đó là một ý tưởng thú vị[^.!?]*[.!?]\s*/u,
+];
+
+function stripOpeners(text) {
+  let result = text;
+  for (const pattern of OPENER_PATTERNS) {
+    result = result.replace(pattern, '');
+  }
+  // GPT-4o-mini hay dùng "bạn" dù đã cấm — replace về "anh/chị"
+  result = result.replace(/\b[Bb]ạn\b/gu, 'anh/chị');
+  return result.trim();
+}
+
 // ─── Fallback responses ────────────────────────────────────────────────────────
 // Chỉ các tín hiệu đặt hàng RÕ RÀNG — không dùng "muốn mua" vì quá rộng
 const ORDER_KEYWORDS = ['đặt hàng', 'muốn đặt', 'chốt đơn', 'gửi form', 'điền form', 'link đặt', 'đặt như thế nào', 'đặt ở đâu', 'mua như nào', 'làm sao để mua', 'tôi chốt'];
@@ -110,10 +130,11 @@ app.post('/chat', async (req, res) => {
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       messages,
       max_tokens: 600,
-      temperature: 0.65,
+      temperature: 0.3,
     });
 
-    const reply = completion.choices[0]?.message?.content || 'Dạ anh/chị có thể nói rõ hơn để em tư vấn tốt hơn không ạ?';
+    const raw = completion.choices[0]?.message?.content || 'Dạ anh/chị có thể nói rõ hơn để em tư vấn tốt hơn không ạ?';
+    const reply = stripOpeners(raw);
     res.json({ reply, mode: 'openai' });
   } catch (err) {
     console.error('OpenAI error:', err.message);
